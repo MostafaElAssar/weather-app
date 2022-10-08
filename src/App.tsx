@@ -1,21 +1,11 @@
 import React, { useState } from 'react';
-import { AutoComplete, Layout, Image, Table, Typography } from 'antd';
-import styled from 'styled-components';
+import { Table, Typography } from 'antd';
+import BaseLayout from './components/BaseLayout';
+import Search from './components/Search';
 import useLocations from './hooks/useLocations';
 import useForecast from './hooks/useForecast';
-import style from './App.style';
 
-const { Header, Content, Footer } = Layout;
-
-const { Column, ColumnGroup } = Table;
-
-const { Title } = Typography;
-
-interface AppProps {
-  className?: string;
-}
-
-const App: React.FC<AppProps> = ({ className }) => {
+const App: React.FC<{}> = () => {
   const [cityName, setCityName] = useState<string>();
 
   const { locations, query, setQuery } = useLocations();
@@ -30,54 +20,45 @@ const App: React.FC<AppProps> = ({ className }) => {
     setLon(lon);
   };
 
-  const handleSearch = (value: string) => {
-    setQuery(value);
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
   };
 
   return (
-    <Layout className={className}>
-      <Header>
-        <Image
-          preview={false}
-          width={50}
-          src={`${process.env.PUBLIC_URL}/assets/images/weather-icon.svg`}
-        />
-      </Header>
-      <Content>
-        <AutoComplete
-          value={query}
-          options={locations.map(({ name, lat, lon }) => ({
-            label: name,
-            value: JSON.stringify({ lat, lon, name }),
+    <BaseLayout>
+      <Search
+        locations={locations}
+        onSearch={handleSearch}
+        onSelect={handleSelect}
+        query={query}
+      />
+      {forecast.length > 0 && (
+        <Table
+          title={() => (
+            <Typography.Title level={4}>{cityName}</Typography.Title>
+          )}
+          pagination={false}
+          dataSource={forecast.map(({ dt_txt, main }) => ({
+            key: dt_txt,
+            dt_txt,
+            temp_min: main.temp_min,
+            temp_max: main.temp_max,
           }))}
-          onSelect={handleSelect}
-          onSearch={handleSearch}
-          placeholder="Search by name"
-        />
-        {forecast.length > 0 && (
-          <Table
-            title={() => <Title>{cityName}</Title>}
-            pagination={false}
-            dataSource={forecast.map(({ dt_txt, main }) => ({
-              key: dt_txt,
-              dt_txt,
-              temp_min: main.temp_min,
-              temp_max: main.temp_max,
-            }))}
-          >
-            <Column title="Day" dataIndex="dt_txt" key="dt_txt" />
-            <ColumnGroup title="Temperature">
-              <Column title="Min" dataIndex="temp_min" key="temp_min" />
-              <Column title="Max" dataIndex="temp_max" key="temp_max" />
-            </ColumnGroup>
-          </Table>
-        )}
-      </Content>
-      <Footer>Weather App ©2022</Footer>
-    </Layout>
+        >
+          <Table.Column title="Day" dataIndex="dt_txt" key="dt_txt" />
+          <Table.ColumnGroup title="Temperature">
+            <Table.Column title="Min" dataIndex="temp_min" key="temp_min" />
+            <Table.Column
+              align="right"
+              title="Max"
+              dataIndex="temp_max"
+              key="temp_max"
+            />
+          </Table.ColumnGroup>
+        </Table>
+      )}
+    </BaseLayout>
   );
 };
 
-export default styled(App)`
-  ${style}
-`;
+export default App;
