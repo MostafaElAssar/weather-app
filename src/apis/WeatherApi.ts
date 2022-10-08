@@ -3,7 +3,7 @@ import axios from 'axios';
 const WeatherApi = axios.create({
   baseURL: 'https://api.openweathermap.org',
   params: {
-    appid: process.env.API_KEY,
+    appid: process.env.REACT_APP_API_KEY,
   },
 });
 
